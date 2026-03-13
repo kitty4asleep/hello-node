@@ -6,7 +6,7 @@ app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 3000;
 
-const serverInfo = { name: "hello-mcp", version: "0.2.1" };
+const serverInfo = { name: "hello-mcp", version: "0.3.0" };
 
 const handleRpc = async (body = {}) => {
   const { jsonrpc, id, method, params = {} } = body;
@@ -47,12 +47,12 @@ const handleRpc = async (body = {}) => {
         result: {
           tools: [
             {
-              name: "time.now",
+              name: "time_now",
               description: "Get current ISO time",
               inputSchema: { type: "object", properties: {} }
             },
             {
-              name: "time.cn",
+              name: "time_cn",
               description: "Get current time in Asia/Shanghai (UTC+8)",
               inputSchema: { type: "object", properties: {} }
             },
@@ -67,7 +67,7 @@ const handleRpc = async (body = {}) => {
               }
             },
             {
-              name: "http.get",
+              name: "http_get",
               description: "Fetch a URL via HTTP GET and return text",
               inputSchema: {
                 type: "object",
@@ -79,7 +79,7 @@ const handleRpc = async (body = {}) => {
               }
             },
             {
-              name: "weather.now",
+              name: "weather_now",
               description: "Get current weather (default Nanning) using wttr.in",
               inputSchema: {
                 type: "object",
@@ -101,7 +101,7 @@ const handleRpc = async (body = {}) => {
     const { name, arguments: args = {} } = params;
 
     // ISO 时间
-    if (name === "time.now") {
+    if (name === "time_now") {
       const now = new Date().toISOString();
       return {
         status: 200,
@@ -114,7 +114,7 @@ const handleRpc = async (body = {}) => {
     }
 
     // 东八区时间
-    if (name === "time.cn") {
+    if (name === "time_cn") {
       const now = new Date().toLocaleString("zh-CN", {
         timeZone: "Asia/Shanghai",
         hour12: false
@@ -143,7 +143,7 @@ const handleRpc = async (body = {}) => {
     }
 
     // 通用 GET
-    if (name === "http.get") {
+    if (name === "http_get") {
       const url = String(args.url || "");
       try {
         const r = await fetch(url, { method: "GET" });
@@ -169,14 +169,14 @@ const handleRpc = async (body = {}) => {
           json: {
             jsonrpc: "2.0",
             id,
-            error: { code: -32002, message: "http.get failed: " + String(e) }
+            error: { code: -32002, message: "http_get failed: " + String(e) }
           }
         };
       }
     }
 
     // 现在天气：默认南宁，可传 city 覆盖
-    if (name === "weather.now") {
+    if (name === "weather_now") {
       const rawCity = String(args.city || "").trim();
       const city = rawCity || "Nanning";
       const encoded = encodeURIComponent(city);
@@ -225,7 +225,7 @@ const handleRpc = async (body = {}) => {
             id,
             error: {
               code: -32003,
-              message: "weather.now failed: " + String(e)
+              message: "weather_now failed: " + String(e)
             }
           }
         };
