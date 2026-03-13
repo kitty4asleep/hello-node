@@ -14,7 +14,6 @@ const handleRpc = (body = {}) => {
     return { status: 400, json: { jsonrpc: "2.0", error: { code: -32600, message: "Invalid Request" }, id: null } };
   }
 
-  // initialize
   if (method === "initialize") {
     return {
       status: 200,
@@ -30,7 +29,6 @@ const handleRpc = (body = {}) => {
     };
   }
 
-  // list tools
   if (method === "tools/list") {
     return {
       status: 200,
@@ -42,6 +40,11 @@ const handleRpc = (body = {}) => {
             {
               name: "time.now",
               description: "Get current ISO time",
+              inputSchema: { type: "object", properties: {} }
+            },
+            {
+              name: "time.cn",
+              description: "Get current time in Asia/Shanghai (UTC+8)",
               inputSchema: { type: "object", properties: {} }
             },
             {
@@ -60,9 +63,9 @@ const handleRpc = (body = {}) => {
     };
   }
 
-  // call tool
   if (method === "tools/call") {
     const { name, arguments: args = {} } = params;
+
     if (name === "time.now") {
       const now = new Date().toISOString();
       return {
@@ -74,6 +77,22 @@ const handleRpc = (body = {}) => {
         }
       };
     }
+
+    if (name === "time.cn") {
+      const now = new Date().toLocaleString("zh-CN", {
+        timeZone: "Asia/Shanghai",
+        hour12: false
+      });
+      return {
+        status: 200,
+        json: {
+          jsonrpc: "2.0",
+          id,
+          result: { content: [{ type: "text", text: now }] }
+        }
+      };
+    }
+
     if (name === "echo") {
       const text = String(args.text ?? "");
       return {
@@ -85,13 +104,13 @@ const handleRpc = (body = {}) => {
         }
       };
     }
+
     return { status: 400, json: { jsonrpc: "2.0", id, error: { code: -32001, message: "Unknown tool" } } };
   }
 
   return { status: 400, json: { jsonrpc: "2.0", id, error: { code: -32601, message: "Method not found" } } };
 };
 
-// 支持 "/" 和 "/mcp"
 app.post("/", (req, res) => {
   console.log("POST / body:", req.body);
   const r = handleRpc(req.body);
@@ -103,7 +122,6 @@ app.post("/mcp", (req, res) => {
   res.status(r.status).json(r.json);
 });
 
-// 健康检查
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/", (req, res) => res.send("MCP server is running"));
 
